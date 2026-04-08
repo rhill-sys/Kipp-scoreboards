@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mix-Up Scoreboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+```
+body {
+  min-height: 100vh;
+  background: #0D0D0D;
+  font-family: 'Courier New', monospace;
+  color: #F5F5F0;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+.header {
+  text-align: center;
+  padding: 20px 16px 10px;
+  animation: slideIn 0.5s ease-out;
+}
+
+.header h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 6px;
+  color: #FFE66D;
+  text-transform: uppercase;
+  font-weight: 400;
+}
+
+.header .subtitle {
+  font-size: 11px;
+  color: #666;
+  letter-spacing: 2px;
+  margin-top: 2px;
+  font-family: 'Space Mono', monospace;
+}
+
+.tug-bar {
+  margin: 8px 20px 4px;
+  height: 6px;
+  border-radius: 3px;
+  background: #1a1a1a;
+  overflow: hidden;
+  display: flex;
+}
+
+.tug-left {
+  background: linear-gradient(90deg, #FF6B6B, #FF8E8E);
+  transition: width 0.4s ease;
+  border-radius: 3px 0 0 3px;
+}
+
+.tug-right {
+  background: linear-gradient(90deg, #4ECDC4, #45B7D1);
+  transition: width 0.4s ease;
+  border-radius: 0 3px 3px 0;
+}
+
+.tug-labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+  font-size: 10px;
+  font-family: 'Space Mono', monospace;
+  color: #555;
+}
+
+.panels {
+  flex: 1;
+  display: flex;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 16px;
+  border: 2px solid #1a1a1a;
+  padding: 16px 8px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+
+.panel.left { background: linear-gradient(180deg, #1a1212 0%, #0D0D0D 100%); }
+.panel.right { background: linear-gradient(180deg, #0f1a19 0%, #0D0D0D 100%); }
+.panel.left.leading { border-color: #FF6B6B; }
+.panel.right.leading { border-color: #4ECDC4; }
+
+.crown {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 16px;
+  display: none;
+}
+
+.panel.leading .crown { display: block; }
+
+.panel-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+.panel.left .panel-name { color: #FF6B6B; }
+.panel.right .panel-name { color: #4ECDC4; }
+
+.panel-desc {
+  font-size: 10px;
+  color: #666;
+  text-align: center;
+  font-family: 'Space Mono', monospace;
+  margin: 4px 0 2px;
+  line-height: 1.4;
+  padding: 0 4px;
+}
+
+.score {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 80px;
+  color: #F5F5F0;
+  line-height: 1;
+  margin: auto 0;
+  transition: transform 0.15s ease;
+}
+
+.score.pop { animation: numberPop 0.3s ease; }
+.panel.left .score.glow { text-shadow: 0 0 30px rgba(255,107,107,0.3); }
+.panel.right .score.glow { text-shadow: 0 0 30px rgba(78,205,196,0.3); }
+
+.oops-btn {
+  width: 100%;
+  padding: 14px 0;
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 3px;
+  cursor: pointer;
+  transition: transform 0.1s;
+  margin-top: auto;
+}
+
+.oops-btn:active { transform: scale(0.95); }
+.panel.left .oops-btn { background: linear-gradient(135deg, #FF6B6B, #ee5a5a); }
+.panel.right .oops-btn { background: linear-gradient(135deg, #4ECDC4, #3dbdb5); }
+
+.undo-btn {
+  margin-top: 8px;
+  background: none;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: #555;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  padding: 4px 12px;
+  cursor: pointer;
+  display: none;
+}
+
+.undo-btn.visible { display: inline-block; }
+
+.divider {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.divider-line {
+  width: 1px;
+  flex: 1;
+  background: linear-gradient(180deg, transparent, #333, transparent);
+}
+
+.divider-vs {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  color: #FFE66D;
+  letter-spacing: 2px;
+}
+
+.footer {
+  padding: 8px 20px 24px;
+  text-align: center;
+}
+
+.footer .total {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: #444;
+}
+
+.reset-btn {
+  margin-top: 8px;
+  background: none;
+  border: 1px solid #222;
+  border-radius: 8px;
+  color: #444;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  padding: 4px 16px;
+  cursor: pointer;
+  display: none;
+}
+
+.reset-btn.visible { display: inline-block; }
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes numberPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 0 rgba(255,107,107,0.4); }
+  100% { box-shadow: 0 0 0 20px rgba(255,107,107,0); }
+}
+
+@keyframes pulseGlowBlue {
+  0% { box-shadow: 0 0 0 0 rgba(78,205,196,0.4); }
+  100% { box-shadow: 0 0 0 20px rgba(78,205,196,0); }
+}
+```
+
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Mix-Up Scoreboard</h1>
+    <div class="subtitle">LIVE CONFUSION TRACKER</div>
+  </div>
+
+  <div class="tug-bar">
+    <div class="tug-left" id="tugLeft" style="width:50%"></div>
+    <div class="tug-right" id="tugRight" style="width:50%"></div>
+  </div>
+  <div class="tug-labels">
+    <span id="pctLeft">—</span>
+    <span id="pctRight">—</span>
+  </div>
+
+  <div class="panels">
+    <div class="panel left" id="panelLeft">
+      <div class="crown">👑</div>
+      <div class="panel-name">GABRIELLA</div>
+      <div class="panel-desc">confuses Johel<br>with Sabrina</div>
+      <div class="score" id="scoreLeft">0</div>
+      <button class="oops-btn" onclick="addLeft()">+ OOPS!</button>
+      <button class="undo-btn" id="undoLeft" onclick="undoLeftFn()">undo</button>
+    </div>
+
+```
+<div class="divider">
+  <div class="divider-line"></div>
+  <div class="divider-vs">VS</div>
+  <div class="divider-line"></div>
+</div>
+
+<div class="panel right" id="panelRight">
+  <div class="crown">👑</div>
+  <div class="panel-name">JOEL &<br>SABRINA</div>
+  <div class="panel-desc">confuse KTAF with<br>KIPP NJ / Miami</div>
+  <div class="score" id="scoreRight">0</div>
+  <button class="oops-btn" onclick="addRight()">+ OOPS!</button>
+  <button class="undo-btn" id="undoRight" onclick="undoRightFn()">undo</button>
+</div>
+```
+
+  </div>
+
+  <div class="footer">
+    <div class="total" id="totalText">Total mix-ups: 0</div>
+    <button class="reset-btn" id="resetBtn" onclick="resetAll()">reset all</button>
+  </div>
+
+  <script>
+    let left = 0;
+    let right = 0;
+
+    function update() {
+      const total = left + right;
+      const lPct = total === 0 ? 50 : (left / total) * 100;
+      const rPct = total === 0 ? 50 : (right / total) * 100;
+
+      document.getElementById('scoreLeft').textContent = left;
+      document.getElementById('scoreRight').textContent = right;
+      document.getElementById('tugLeft').style.width = lPct + '%';
+      document.getElementById('tugRight').style.width = rPct + '%';
+      document.getElementById('pctLeft').textContent = total > 0 ? Math.round(lPct) + '%' : '—';
+      document.getElementById('pctRight').textContent = total > 0 ? Math.round(rPct) + '%' : '—';
+
+      const panelL = document.getElementById('panelLeft');
+      const panelR = document.getElementById('panelRight');
+      panelL.classList.toggle('leading', left > right);
+      panelR.classList.toggle('leading', right > left);
+
+      document.getElementById('scoreLeft').classList.toggle('glow', left > 0);
+      document.getElementById('scoreRight').classList.toggle('glow', right > 0);
+
+      document.getElementById('undoLeft').classList.toggle('visible', left > 0);
+      document.getElementById('undoRight').classList.toggle('visible', right > 0);
+
+      let emoji = '';
+      if (total >= 20) emoji = ' 🔥 💀';
+      else if (total >= 10) emoji = ' 🔥';
+      document.getElementById('totalText').textContent = 'Total mix-ups: ' + total + emoji;
+      document.getElementById('resetBtn').classList.toggle('visible', total > 0);
+    }
+
+    function pop(id) {
+      const el = document.getElementById(id);
+      el.classList.remove('pop');
+      void el.offsetWidth;
+      el.classList.add('pop');
+    }
+
+    function addLeft() {
+      left++;
+      pop('scoreLeft');
+      update();
+    }
+
+    function addRight() {
+      right++;
+      pop('scoreRight');
+      update();
+    }
+
+    function undoLeftFn() {
+      if (left > 0) { left--; update(); }
+    }
+
+    function undoRightFn() {
+      if (right > 0) { right--; update(); }
+    }
+
+    function resetAll() {
+      left = 0;
+      right = 0;
+      update();
+    }
+  </script>
+
+</body>
+</html>
